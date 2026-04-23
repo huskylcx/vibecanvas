@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VibeCanvas - 生活色彩捕捉器</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -13,13 +14,17 @@
         <label for="imgInput" class="btn-main">拍照或上傳圖片</label>
         <input type="file" id="imgInput" accept="image/*" hidden>
         
-        <img id="preview" style="display:none; width:100%; border-radius:12px; margin-top:20px;">
+        <img id="preview" style="display:none; width:100%; border-radius:12px; margin-top:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
         
         <div id="palette" class="palette-grid"></div>
 
-        <button id="syncBtn" class="btn-sync" style="display:none;">✨ 同步至設計靈感庫</button>
-        <div id="status"></div>
+        <button id="syncBtn" class="vibe-sync-btn" style="display:none;">
+            <span class="btn-text">下載專屬色票卡 ✦</span>
+        </button>
+        
+        <div id="status" style="margin-top: 15px; font-size: 13px; color: #4cd137;"></div>
     </div>
+
     <script type="module" src="app.js"></script>
 </body>
 </html>
