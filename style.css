@@ -1,44 +1,143 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    /* 統一使用 Inter 字體 */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
 body {
-    background: #0f172a;
+    background-color: #050505; /* 極致深黑 */
+    color: #ededed;
+    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    color: white;
-    font-family: sans-serif;
+    /* 加入細微的類比底片雜訊，提升實體質感 */
+    background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.05"/%3E%3C/svg%3E');
 }
-.glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 30px;
-    border-radius: 24px;
-    width: 380px;
+
+.studio-container {
+    background: rgba(20, 20, 20, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08); /* 極細邊框 */
+    padding: 48px 40px;
+    border-radius: 32px;
+    width: 90%;
+    max-width: 440px;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.app-header {
     text-align: center;
+    margin-bottom: 40px;
 }
-.btn-main, .btn-sync {
-    background: #38bdf8;
-    color: #0f172a;
-    padding: 12px 24px;
-    border-radius: 50px;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: bold;
-    border: none;
+
+.app-header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+    margin-bottom: 4px;
 }
-.btn-sync {
-    background: #f472b6;
-    margin-top: 20px;
+
+.app-header p {
+    font-size: 12px;
+    color: #71717a;
+    font-weight: 400;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* 高對比主按鈕 (上傳) */
+.btn-primary {
+    display: block;
     width: 100%;
+    background: #ffffff;
+    color: #000000;
+    padding: 16px 0;
+    border-radius: 100px; /* 膠囊形狀 */
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
 }
+
+.btn-primary:hover {
+    background: #e4e4e7;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+/* 預覽圖片容器 */
+.preview-wrapper {
+    margin-top: 24px;
+}
+
+#preview {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 色票網格排列 */
 .palette-grid {
     display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 24px;
 }
+
+/* 強制覆蓋 app.js 裡面的 swatch 樣式 */
 .swatch {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: 2px solid white;
+    width: 100% !important;
+    aspect-ratio: 1/1;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4) !important;
+    transition: transform 0.3s ease;
+}
+
+.swatch:hover {
+    transform: translateY(-4px);
+}
+
+/* 高級實體感按鈕 (下載/同步) */
+.btn-secondary {
+    background: #18181b;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 32px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+}
+
+.btn-secondary:hover {
+    background: #27272a;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:active {
+    transform: scale(0.98);
+}
+
+/* 狀態提示字 */
+.status-text {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 12px;
+    color: #a1a1aa;
+    min-height: 16px;
 }
