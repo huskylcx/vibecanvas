@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>VibeCanvas - 生活色彩捕捉器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-card">
+        <h1>VibeCanvas 🎨</h1>
+        <p>捕捉現實生活中的色彩靈感</p>
+        
+        <label for="imgInput" class="btn-main">拍照或上傳圖片</label>
+        <input type="file" id="imgInput" accept="image/*" hidden>
+        
+        <img id="preview" style="display:none; width:100%; border-radius:12px; margin-top:20px;">
+        
+        <div id="palette" class="palette-grid"></div>
+
+        <button id="syncBtn" class="btn-sync" style="display:none;">✨ 同步至設計靈感庫</button>
+        <div id="status"></div>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+</html>
