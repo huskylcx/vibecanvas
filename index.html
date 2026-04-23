@@ -3,26 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeCanvas - 生活色彩捕捉器</title>
+    <title>VibeCanvas - 靈感捕捉</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="glass-card">
-        <h1>VibeCanvas 🎨</h1>
-        <p>捕捉現實生活中的色彩靈感</p>
+    <div class="studio-container">
+        <header class="app-header">
+            <h1>VibeCanvas</h1>
+            <p>Color Palette Extractor</p>
+        </header>
         
-        <label for="imgInput" class="btn-main">拍照或上傳圖片</label>
+        <label for="imgInput" class="btn-primary">上傳影像</label>
         <input type="file" id="imgInput" accept="image/*" hidden>
         
-        <img id="preview" style="display:none; width:100%; border-radius:12px; margin-top:20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+        <div class="preview-wrapper">
+            <img id="preview" style="display:none;">
+        </div>
         
         <div id="palette" class="palette-grid"></div>
 
-        <button id="syncBtn" class="vibe-sync-btn" style="display:none;">
-            <span class="btn-text">下載專屬色票卡 ✦</span>
+        <button id="syncBtn" class="btn-secondary" style="display:none;">
+            下載色票卡片 ✦
         </button>
         
-        <div id="status" style="margin-top: 15px; font-size: 13px; color: #4cd137;"></div>
+        <div id="status" class="status-text"></div>
     </div>
 
     <script type="module" src="app.js"></script>
