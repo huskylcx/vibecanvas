@@ -11,7 +11,6 @@ const firebaseConfig = {
   appId: "1:877448258963:web:110fb4af1c7a42b9817466"
 };
 
-// 記得把下面這兩個換成你的 Google 表單網址跟 ID 哦！
 const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfPGAMohyrGKW6-2KUkGnyuNHkQjPPCBMZTiEYgiRDd2efmkA/formResponse";
 const GOOGLE_FORM_ENTRY_ID = "entry.364290506";
 
@@ -36,6 +35,10 @@ imgInput.onchange = (e) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
+        // 每次重新上傳，先隱藏按鈕並重置狀態
+        syncBtn.style.display = 'none';
+        status.innerText = "正在載入圖片... 🖼️";
+        
         preview.src = event.target.result;
         preview.style.display = 'block';
         preview.onload = () => extract(preview);
@@ -51,7 +54,6 @@ function rgbToHex(r, g, b) {
 // 提取色彩與呼叫外部 API
 async function extract(img) {
     status.innerText = "正在分析照片像素... 🔍";
-    syncBtn.style.display = 'none';
     palette.innerHTML = '';
     extractedData = [];
 
@@ -96,17 +98,18 @@ async function extract(img) {
         }
     }
     
-    status.innerText = "✨ 解析完成！可以同步了！";
-   // 寫入資料庫與生成色票卡
+    status.innerText = "✨ 解析完成！可以下載了！";
+    syncBtn.style.display = 'block'; // <--- 剛才不小心遺失的這行！現在補回來了！
+}
+
+// 寫入資料庫與生成色票卡
 syncBtn.onclick = async () => {
     syncBtn.innerText = "生成卡片並同步中... 🎨";
     
     // --- 魔法 1：偷偷同步資料庫 (保住 90 分) ---
     const colorStr = extractedData.map(d => `${d.hex}(${d.name})`).join(', ');
     try {
-        // Firebase 寫入
         addDoc(collection(db, "vibes"), { colors: colorStr, time: new Date() });
-        // 表單寫入
         const formData = new URLSearchParams();
         formData.append(GOOGLE_FORM_ENTRY_ID, colorStr);
         fetch(GOOGLE_FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: formData });
@@ -120,42 +123,34 @@ syncBtn.onclick = async () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        // 設定拍立得畫布尺寸 (寬度固定 800)
         const cardWidth = 800;
         const imgRatio = img.naturalHeight / img.naturalWidth;
         const imgHeight = cardWidth * imgRatio;
-        const cardHeight = imgHeight + 250; // 下方留 250px 放色票與文字
+        const cardHeight = imgHeight + 250; 
 
         canvas.width = cardWidth;
         canvas.height = cardHeight;
 
-        // 畫白色背景
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, cardWidth, cardHeight);
 
-        // 畫上原始照片
         ctx.drawImage(img, 0, 0, cardWidth, imgHeight);
 
-        // 畫上 5 個色票
         const swatchWidth = cardWidth / 5;
         extractedData.forEach((data, index) => {
-            // 色塊
             ctx.fillStyle = data.hex;
             ctx.fillRect(index * swatchWidth, imgHeight, swatchWidth, 150);
 
-            // Hex 色碼文字
             ctx.fillStyle = "#333333";
             ctx.font = "bold 22px monospace";
             ctx.textAlign = "center";
             ctx.fillText(data.hex, index * swatchWidth + swatchWidth / 2, imgHeight + 190);
 
-            // 顏色名稱文字
             ctx.fillStyle = "#888888";
             ctx.font = "18px sans-serif";
             ctx.fillText(data.name, index * swatchWidth + swatchWidth / 2, imgHeight + 225);
         });
 
-        // 觸發下載
         const link = document.createElement('a');
         link.download = `VibeCanvas_${Date.now()}.png`;
         link.href = canvas.toDataURL("image/png");
