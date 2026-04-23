@@ -58,7 +58,7 @@ body {
     padding: 40px;
     border-radius: 32px;
     width: 100%;
-    max-width: 900px; /* 加寬以支援電腦版並排 */
+    max-width: 900px;
     position: relative;
 }
 
@@ -79,9 +79,15 @@ body {
     .results-wrapper { flex: 1; }
 }
 
-.app-header { text-align: center; margin-bottom: 32px; }
+/* 標題與下方按鈕的間距 */
+.app-header { text-align: center; margin-bottom: 40px; }
 .app-header h1 { font-size: 24px; margin-bottom: 4px; }
 .app-header p { font-size: 12px; color: var(--text-sub); letter-spacing: 1px; }
+
+/* 增加上傳按鈕與下方圖片預覽的關鍵間距 */
+.action-area {
+    margin-bottom: 56px; /* 加大留白，讓操作區與展示區分隔開來 */
+}
 
 .btn-primary {
     display: block;
