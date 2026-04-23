@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
-<head>
+<html lang="zh-TW" data-theme="dark"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VibeCanvas - 靈感捕捉</title>
@@ -11,25 +10,33 @@
 </head>
 <body>
     <div class="studio-container">
+        <div class="theme-toggle" id="themeToggle">
+            <span class="toggle-icon">🌓</span>
+        </div>
+
         <header class="app-header">
             <h1>VibeCanvas</h1>
             <p>Color Palette Extractor</p>
         </header>
         
-        <label for="imgInput" class="btn-primary">上傳影像</label>
-        <input type="file" id="imgInput" accept="image/*" hidden>
-        
-        <div class="preview-wrapper">
-            <img id="preview" style="display:none;">
+        <div class="action-area">
+            <label for="imgInput" class="btn-primary">上傳影像</label>
+            <input type="file" id="imgInput" accept="image/*" hidden>
         </div>
         
-        <div id="palette" class="palette-grid"></div>
-
-        <button id="syncBtn" class="btn-secondary" style="display:none;">
-            下載色票卡片 ✦
-        </button>
-        
-        <div id="status" class="status-text"></div>
+        <div class="content-layout">
+            <div class="preview-wrapper">
+                <img id="preview" style="display:none;">
+            </div>
+            
+            <div class="results-wrapper">
+                <div id="palette" class="palette-grid"></div>
+                <button id="syncBtn" class="btn-secondary" style="display:none;">
+                    下載色票卡片 ✦
+                </button>
+                <div id="status" class="status-text"></div>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="app.js"></script>
