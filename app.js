@@ -38,27 +38,65 @@ imgInput.onchange = (e) => {
     reader.readAsDataURL(file);
 };
 
+// 將 RGB 轉換為 Hex 色碼的工具
+function rgbToHex(r, g, b) {
+    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+}
+
 async function extract(img) {
-    status.innerText = "正在解析 Vibe 色彩...";
+    status.innerText = "正在分析照片像素...";
+    syncBtn.style.display = 'none';
+    palette.innerHTML = '';
+    extractedData = [];
+
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = 100; canvas.height = 100;
-    ctx.drawImage(img, 0, 0, 100, 100);
+    
+    // 使用照片真實比例
+    canvas.width = img.naturalWidth || img.width || 100;
+    canvas.height = img.naturalHeight || img.height || 100;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    const colors = ["#FF5733", "#33FF57", "#3357FF"]; // 這裡為了穩定 Demo 先設固定點位提取，或讓 AI 寫完整提取
-    extractedData = [];
-    palette.innerHTML = '';
+    // 抓取照片中 5 個不同位置的顏色 (左上、右上、中間、左下、右下)
+    const w = canvas.width;
+    const h = canvas.height;
+    const points = [
+        {x: Math.floor(w * 0.2), y: Math.floor(h * 0.2)}, 
+        {x: Math.floor(w * 0.8), y: Math.floor(h * 0.2)}, 
+        {x: Math.floor(w * 0.5), y: Math.floor(h * 0.5)}, 
+        {x: Math.floor(w * 0.2), y: Math.floor(h * 0.8)}, 
+        {x: Math.floor(w * 0.8), y: Math.floor(h * 0.8)}  
+    ];
 
-    for (let hex of colors) {
-        // 串接 App 2: The Color API 獲取名稱
-        const res = await fetch(`https://www.thecolorapi.com/id?hex=${hex.replace('#','')}`);
-        const data = await res.json();
-        const name = data.name.value;
-        
-        extractedData.push({ hex, name });
-        palette.innerHTML += `<div class="swatch" style="background:${hex}" title="${name}"></div>`;
+    // 取得這 5 個點的色碼
+    const dynamicColors = points.map(p => {
+        const pixel = ctx.getImageData(p.x, p.y, 1, 1).data;
+        return rgbToHex(pixel[0], pixel[1], pixel[2]);
+    });
+
+    // 串接 The Color API 取得名稱，並畫出介面
+    for (let hex of dynamicColors) {
+        try {
+            const res = await fetch(`https://www.thecolorapi.com/id?hex=${hex.replace('#','')}`);
+            const data = await res.json();
+            const name = data.name.value;
+            
+            extractedData.push({ hex, name });
+            
+            // 介面更新：顯示色塊、名稱與數值
+            palette.innerHTML += `
+                <div style="text-align: center;">
+                    <div class="swatch" style="background:${hex}; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+                    <div style="font-size: 13px; margin-top: 8px; color: #e2e8f0;">${name}</div>
+                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; font-family: monospace;">${hex}</div>
+                </div>
+            `;
+        } catch(e) {
+            console.error("API 發生錯誤", e);
+        }
     }
-    status.innerText = "解析完成！";
+    
+    status.innerText = "✨ 解析完成！";
     syncBtn.style.display = 'block';
 }
 
@@ -66,14 +104,18 @@ syncBtn.onclick = async () => {
     syncBtn.innerText = "同步中...";
     const colorStr = extractedData.map(d => `${d.hex}(${d.name})`).join(', ');
 
-    // 動作 A: Firebase Firestore
-    await addDoc(collection(db, "vibes"), { colors: colorStr, time: new Date() });
+    try {
+        // 動作 A: 寫入 Firebase
+        await addDoc(collection(db, "vibes"), { colors: colorStr, time: new Date() });
 
-    // 動作 B: Google 表單 (試算表)
-    const formData = new FormData();
-    formData.append(ENTRY_ID, colorStr);
-    fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: formData });
+        // 動作 B: 寫入 Google 表單
+        const formData = new FormData();
+        formData.append(GOOGLE_FORM_ENTRY_ID, colorStr);
+        await fetch(GOOGLE_FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: formData });
 
-    syncBtn.innerText = "✨ 已同步至靈感庫";
-    status.innerText = "✅ 已寫入 Firebase 並同步試算表";
+        syncBtn.innerText = "✨ 已同步至靈感庫";
+        status.innerText = "✅ 已寫入 Firebase 並同步試算表";
+    } catch (err) {
+        status.innerText = "❌ 同步失敗，請檢查網路連線。";
+    }
 };
