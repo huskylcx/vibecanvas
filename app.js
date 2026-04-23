@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
 
-// ====== 【設定區】 ======
+// ====== 【1. 設定區：使用你的專屬金鑰】 ======
 const firebaseConfig = {
   apiKey: "AIzaSyBOALk8qAKebdgO8EkpPWp4mS8e9wStBk4",
   authDomain: "vibecanvas-e7634.firebaseapp.com",
@@ -14,10 +14,7 @@ const firebaseConfig = {
 const GOOGLE_FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfPGAMohyrGKW6-2KUkGnyuNHkQjPPCBMZTiEYgiRDd2efmkA/formResponse";
 const GOOGLE_FORM_ENTRY_ID = "entry.364290506";
 
-// ==========================================
-// ⚠️ 以下程式碼請絕對不要動它！
-// ==========================================
-
+// ====== 【2. 初始化服務】 ======
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -26,19 +23,32 @@ const preview = document.getElementById('preview');
 const palette = document.getElementById('palette');
 const syncBtn = document.getElementById('syncBtn');
 const status = document.getElementById('status');
+const themeToggle = document.getElementById('themeToggle');
 
 let extractedData = [];
 
-// 照片上傳監聽
+// ====== 【3. 深淺色模式切換邏輯】 ======
+themeToggle.addEventListener('click', () => {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('vibe-theme', newTheme);
+});
+
+// 檢查上次儲存的主題
+if (localStorage.getItem('vibe-theme')) {
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('vibe-theme'));
+}
+
+// ====== 【4. 圖片處理與色彩提取】 ======
 imgInput.onchange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (event) => {
-        // 每次重新上傳，先隱藏按鈕並重置狀態
         syncBtn.style.display = 'none';
-        status.innerText = "正在載入圖片... 🖼️";
-        
+        status.innerText = "正在載入圖片...";
         preview.src = event.target.result;
         preview.style.display = 'block';
         preview.onload = () => extract(preview);
@@ -46,31 +56,30 @@ imgInput.onchange = (e) => {
     reader.readAsDataURL(file);
 };
 
-// RGB 轉 HEX 工具
 function rgbToHex(r, g, b) {
     return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
 }
 
-// 提取色彩與呼叫外部 API
 async function extract(img) {
-    status.innerText = "正在分析照片像素... 🔍";
+    status.innerText = "正在分析像素氛圍... 🔍";
     palette.innerHTML = '';
     extractedData = [];
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = img.naturalWidth || img.width || 100;
-    canvas.height = img.naturalHeight || img.height || 100;
+    canvas.width = img.naturalWidth || img.width;
+    canvas.height = img.naturalHeight || img.height;
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
     const w = canvas.width;
     const h = canvas.height;
+    // 取 5 個點
     const points = [
-        {x: Math.floor(w * 0.2), y: Math.floor(h * 0.2)}, 
-        {x: Math.floor(w * 0.8), y: Math.floor(h * 0.2)}, 
-        {x: Math.floor(w * 0.5), y: Math.floor(h * 0.5)}, 
-        {x: Math.floor(w * 0.2), y: Math.floor(h * 0.8)}, 
-        {x: Math.floor(w * 0.8), y: Math.floor(h * 0.8)}  
+        {x: Math.floor(w*0.2), y: Math.floor(h*0.2)}, 
+        {x: Math.floor(w*0.8), y: Math.floor(h*0.2)}, 
+        {x: Math.floor(w*0.5), y: Math.floor(h*0.5)}, 
+        {x: Math.floor(w*0.2), y: Math.floor(h*0.8)}, 
+        {x: Math.floor(w*0.8), y: Math.floor(h*0.8)}  
     ];
 
     const dynamicColors = points.map(p => {
@@ -83,72 +92,67 @@ async function extract(img) {
             const res = await fetch(`https://www.thecolorapi.com/id?hex=${hex.replace('#','')}`);
             const data = await res.json();
             const name = data.name.value;
-            
             extractedData.push({ hex, name });
             
             palette.innerHTML += `
-                <div style="text-align: center;">
-                    <div class="swatch" style="background:${hex}; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
-                    <div style="font-size: 13px; margin-top: 8px; color: #e2e8f0;">${name}</div>
-                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px; font-family: monospace;">${hex}</div>
+                <div style="text-align: center; flex: 1;">
+                    <div class="swatch" style="background:${hex}; margin: 0 auto;"></div>
+                    <div style="font-size: 10px; margin-top: 8px; font-weight: 500;">${name}</div>
+                    <div style="font-size: 9px; opacity: 0.6; font-family: monospace;">${hex}</div>
                 </div>
             `;
-        } catch(e) {
-            console.error(e);
-        }
+        } catch(e) { console.error(e); }
     }
-    
-    status.innerText = "✨ 解析完成！可以下載了！";
-    syncBtn.style.display = 'block'; // <--- 剛才不小心遺失的這行！現在補回來了！
+    status.innerText = "解析完成，準備下載。";
+    syncBtn.style.display = 'block';
 }
 
-// 寫入資料庫與生成色票卡
+// ====== 【5. 下載色票卡與後台同步】 ======
 syncBtn.onclick = async () => {
-    syncBtn.innerText = "生成卡片並同步中... 🎨";
-    
-    // --- 魔法 1：偷偷同步資料庫 (保住 90 分) ---
+    syncBtn.innerText = "處理中...";
     const colorStr = extractedData.map(d => `${d.hex}(${d.name})`).join(', ');
+
+    // 背景同步 (Firebase & Google Form)
     try {
         addDoc(collection(db, "vibes"), { colors: colorStr, time: new Date() });
         const formData = new URLSearchParams();
         formData.append(GOOGLE_FORM_ENTRY_ID, colorStr);
         fetch(GOOGLE_FORM_ACTION_URL, { method: 'POST', mode: 'no-cors', body: formData });
-    } catch (err) {
-        console.error("背景同步發生小錯誤，但不影響圖片下載", err);
-    }
+    } catch (err) { console.log("Database sync error", err); }
 
-    // --- 魔法 2：繪製並下載 Vibe 色票卡 (視覺展示) ---
+    // 繪製下載圖卡
     try {
-        const img = document.getElementById('preview');
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-
-        const cardWidth = 800;
-        const imgRatio = img.naturalHeight / img.naturalWidth;
+        const cardWidth = 1000;
+        const imgRatio = preview.naturalHeight / preview.naturalWidth;
         const imgHeight = cardWidth * imgRatio;
-        const cardHeight = imgHeight + 250; 
-
+        const footerHeight = 300;
+        
         canvas.width = cardWidth;
-        canvas.height = cardHeight;
+        canvas.height = imgHeight + footerHeight;
 
+        // 畫布背景
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(0, 0, cardWidth, cardHeight);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // 繪製照片
+        ctx.drawImage(preview, 0, 0, cardWidth, imgHeight);
 
-        ctx.drawImage(img, 0, 0, cardWidth, imgHeight);
-
+        // 繪製底部色票區
         const swatchWidth = cardWidth / 5;
         extractedData.forEach((data, index) => {
             ctx.fillStyle = data.hex;
-            ctx.fillRect(index * swatchWidth, imgHeight, swatchWidth, 150);
+            ctx.fillRect(index * swatchWidth, imgHeight, swatchWidth, 180);
 
-            ctx.fillStyle = "#333333";
-            ctx.font = "bold 22px monospace";
+            ctx.fillStyle = "#1a1a1a";
             ctx.textAlign = "center";
-            ctx.fillText(data.hex, index * swatchWidth + swatchWidth / 2, imgHeight + 190);
-
-            ctx.fillStyle = "#888888";
-            ctx.font = "18px sans-serif";
-            ctx.fillText(data.name, index * swatchWidth + swatchWidth / 2, imgHeight + 225);
+            ctx.font = "bold 24px Inter, sans-serif";
+            ctx.fillText(data.hex, index * swatchWidth + swatchWidth / 2, imgHeight + 230);
+            
+            ctx.fillStyle = "#71717a";
+            ctx.font = "20px Inter, sans-serif";
+            ctx.fillText(data.name, index * swatchWidth + swatchWidth / 2, imgHeight + 265);
         });
 
         const link = document.createElement('a');
@@ -156,11 +160,7 @@ syncBtn.onclick = async () => {
         link.href = canvas.toDataURL("image/png");
         link.click();
 
-        syncBtn.innerText = "✨ 下載成功！已封存 Vibe";
-        status.innerText = "✅ 圖片已下載，資料也偷偷存進資料庫囉！";
-        
-    } catch (error) {
-        status.innerText = "❌ 圖片生成失敗，請檢查瀏覽器權限。";
-        syncBtn.innerText = "重新生成";
-    }
+        syncBtn.innerText = "下載成功 ✦";
+        status.innerText = "✅ 圖片已存至裝置，資料已同步至雲端。";
+    } catch (e) { status.innerText = "❌ 生成失敗"; }
 };
